@@ -117,7 +117,12 @@ def forced_move():
     """Testing for forced movements."""
     check50.run(run_command).stdin("down\ndown\ndown\ndown").stdout("The grate is locked and you don't have any keys.\nOutside grate")
 
-@check50.check(forced_move)
+@check50.check(conditional_move)
+def exotic_move():
+    """Testing for unique movements."""
+    check50.run(run_command).stdin("IN").stdin("XYZZY").stdout("It is now pitch dark.  If you proceed you will likely fall into a pit.")
+
+@check50.check(exotic_move)
 def won():
-    """Testing win condition."""
+    """Testing Crowther Adventure win condition."""
     check50.run(run_command).stdin("IN\nTAKE KEYS\nOUT\nDOWN\nDOWN\nDOWN\nDOWN\nTAKE LAMP\nIN\nWEST\nWEST\nWEST\nTAKE BIRD\nWEST\nDOWN\nSOUTH\nTAKE NUGGET\nOUT\nDROP NUGGET\nUP\nEAST\nEAST\nEAST\nTAKE ROD\nWEST\nWEST\nWEST\nDOWN\nTAKE NUGGET\nWEST\nWAVE\nTAKE DIAMOND\nWEST\nSOUTH\nSOUTH\nEAST\nNORTH\nNORTH\nTAKE CHEST\nOUT\nWEST\nDOWN\nWEST\nDOWN\nNORTH\nEAST\nTAKE COINS\nOUT\nNORTH\nDOWN\nEAST\nDROP LAMP\nDROP BIRD\nDROP NUGGET\nDROP COINS\nNORTH\nTAKE EMERALD\nOUT\nTAKE LAMP\nTAKE BIRD\nTAKE NUGGET\nTAKE COINS\nWEST\nWEST\nWEST\nDOWN\nWATER\nTAKE EGGS\nNORTH\nDOWN\nOUT\nEAST\nEAST\nEAST\nUP\nSOUTH\nSOUTH\nWEST\nWAVE\nWEST\nSOUTH\nNORTH\nNORTH\nEAST\nDOWN\nEAST\nEAST\nXYZZY\nNORTH\n").stdout("You have collected all the treasures and are admitted to the Adventurer's Hall of Fame.  Congratulations!").exit(0)
