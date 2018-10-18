@@ -5,26 +5,24 @@ import check50
 
 @check50.check()
 def test_name():
-    """
-    Test message.
-    """
+    """Test message."""
     check50.run(run_command)
 
 '''
 
 run_command = "python3 adventure.py"
 
-room_1_description = "You are standing at the end of a road before a small brick building.  A small stream flows out of the building and down a gully to the south.  A road runs up a small hill to the west."
-room_1_name = "Outside building"
+room_1_description = "You are standing at the end of a road before a small brick building.  A small stream flows out of the building and down a gully to the south.  A road runs up a small hill to the west.\n"
+room_1_name = "Outside building\n"
 
-room_2_name = "End of road"
-room_2_description = "You are at the end of a road at the top of a small hill. You can see a small building in the valley to the east."
+room_2_name = "End of road\n"
+room_2_description = "You are at the end of a road at the top of a small hill. You can see a small building in the valley to the east.\n"
 
-room_3_name = "Inside building"
-room_3_description = "You are inside a building, a well house for a large spring. The exit door is to the south.  There is another room to the north, but the door is barred by a shimmering curtain."
+room_3_name = "Inside building\n"
+room_3_description = "You are inside a building, a well house for a large spring. The exit door is to the south.  There is another room to the north, but the door is barred by a shimmering curtain.\n"
 
-room_14_description = "You are in a splendid chamber thirty feet high.  The walls are frozen rivers of orange stone.  A narrow canyon and a good passage exit from east and west sides of the chamber."
-room_15_description = "You are in a splendid chamber thirty feet high.  The walls are frozen rivers of orange stone.  A narrow canyon and a good passage exit from east and west sides of the chamber. High in the cavern, you see a little bird flying around the rocks.  It takes one look at the black rod and quickly flies out of sight."
+room_14_description = "You are in a splendid chamber thirty feet high.  The walls are frozen rivers of orange stone.  A narrow canyon and a good passage exit from east and west sides of the chamber.\n"
+room_15_description = "You are in a splendid chamber thirty feet high.  The walls are frozen rivers of orange stone.  A narrow canyon and a good passage exit from east and west sides of the chamber. High in the cavern, you see a little bird flying around the rocks.  It takes one look at the black rod and quickly flies out of sight.\n"
 @check50.check()
 def exists():
     """Checking if all files exist."""
@@ -39,19 +37,23 @@ def exists():
 
 @check50.check(exists)
 def move_once():
-    """Move once."""
-    check50.run(run_command).stdout(room_1_description)
+    """Move once to the west."""
+    try:
+        check50.run(run_command).stdout(room_1_description)
+    except check50.Failure as error:
+        raise check50.Failure(f"Expected the description of initial room when Adventure starts.\n    {error}")
+    check50.run(run_command).stdin("WEST").stdout(room_2_description)
+
 
 @check50.check(exists)
 def move_invalid():
-    """Attempt invalid move."""
+    """Attempt an invalid move."""
     check50.run(run_command).stdin("EAST").stdout("Invalid command.")
 
 @check50.check(move_once)
 def move_repeatedly():
-    """Move repeatedly"""
-    check50.run(run_command).stdin("WEST").stdout(room_2_description)
-    check50.run(run_command).stdin("west").stdin("east").stdout(room_1_name)
+    """Moving west then east in succession."""
+    check50.run(run_command).stdin("west").stdout(room_2_description).stdin("east").stdout(room_1_name).stdin("west").stdout(room_2_name)
 
 @check50.check(move_repeatedly)
 def move_mixed_case():
@@ -60,37 +62,55 @@ def move_mixed_case():
     check50.run(run_command).stdin("wESt").stdout(room_2_description)
     check50.run(run_command).stdin("west").stdin("EAST").stdout(room_1_name)
 
-
-
 @check50.check(move_mixed_case)
-def commands():
-    """Test if program accepts user commands and abbreviations from Synonyms.txt."""
-    check50.run(run_command).stdin("yolo").stdout("Invalid command.").stdin("west").stdout(room_2_description)
-    check50.run(run_command).stdin("W").stdout(room_2_description)
-    check50.run(run_command).stdin("w").stdout(room_2_description)
-
-@check50.check(commands)
 def helper_commands():
     """Testing helper commands; HELP, LOOK, QUIT."""
-    check50.run(run_command).stdin("HELP").stdout(
-        "You can move by typing directions such as EAST/WEST/IN/OUT\n" +
-        "QUIT quits the game.\n" +
-        "HELP prints instructions for the game.\n" +
-        "INVENTORY lists the item in your inventory.\n" +
-        "LOOK lists the complete description of the room and its contents.\n" +
-        "TAKE <item> take item from the room.\n" +
-        "DROP <item> drop item from your inventory.\n"
-        )
-    check50.run(run_command).stdin("LOOK").stdout(room_1_description)
-    check50.run(run_command).stdin("look").stdout(room_1_description)
-    check50.run(run_command).stdin("L").stdout(room_1_description)
-    check50.run(run_command).stdin("QUIT").stdout("Thanks for playing!").exit(0)
+    try:
+        check50.run(run_command).stdin("HELP").stdout(
+            "You can move by typing directions such as EAST/WEST/IN/OUT\n" +
+            "QUIT quits the game.\n" +
+            "HELP prints instructions for the game.\n" +
+            "INVENTORY lists the item in your inventory.\n" +
+            "LOOK lists the complete description of the room and its contents.\n" +
+            "TAKE <item> take item from the room.\n" +
+            "DROP <item> drop item from your inventory.\n"
+            )
+    except check50.Failure as error:
+        raise check50.Failure(f"HELP did not print the expected message.\n    {error}")
+    try:
+        check50.run(run_command).stdin("LOOK").stdout(room_1_description)
+        check50.run(run_command).stdin("look").stdout(room_1_description)
+    except check50.Failure as error:
+        raise check50.Failure(f"LOOK/look did not print the expected room description.\n    {error}")
+    try:
+        check50.run(run_command).stdin("QUIT").stdout("Thanks for playing!").exit(0)
+    except check50.Failure as error:
+        raise check50.Failure(f"QUIT did not print the expected message.\n    {error}")
+
+@check50.check(helper_commands)
+def commands():
+    """Test if program accepts user commands and abbreviations."""
+    check50.run(run_command).stdin("cs50").stdout("Invalid command.")
+    try:
+        check50.run(run_command).stdin("W").stdout(room_2_description)
+    except check50.Failure as error:
+        raise check50.Failure(f"Could not use abbreviation 'w' to move")
+    try:
+        check50.run(run_command).stdin("w").stdout(room_2_description)
+    except check50.Failure as error:
+        raise check50.Failure(f"Could not use abbreviation 'w' to move")
 
 @check50.check(helper_commands)
 def find_items():
     """Finds items in rooms."""
-    check50.run(run_command).stdin("in").stdout(room_3_description + "\nKEYS: a set of keys\nWATER: a bottle of water")
-    check50.run(run_command).stdin("in").stdin("out").stdin("in").stdin("look").stdout("KEYS: a set of keys\nWATER: a bottle of water")
+    try:
+        check50.run(run_command).stdin("in").stdout(room_3_description + "KEYS: a set of keys\nWATER: a bottle of water")
+    except check50.Failure as error:
+        raise check50.Failure(f"Could not find items upon first entering room.\n    {error}")
+    try:
+        check50.run(run_command).stdin("in").stdin("out").stdin("in").stdin("look").stdout("KEYS: a set of keys\nWATER: a bottle of water")
+    except check50.Failure as error:
+        raise check50.Failure(f"Could not find items when using LOOK.\n    {error}")
 
 @check50.check(find_items)
 def handle_items():
@@ -107,19 +127,24 @@ def handle_invalid_items():
 
 @check50.check(handle_items)
 def conditional_move():
-    """Testing conditional movements."""
+    """Check if holding an item affects connected room."""
+    check50.run(run_command).stdin("in").stdin("out").stdin("down\ndown\ndown\ndown").stdout("The grate is locked and you don't have any keys.")
+
     check50.run(run_command).stdin("in").stdin("TAKE keys").stdin("out").stdin("down\ndown\ndown\ndown").stdout("You are in a small chamber beneath a 3x3 steel grate to the surface.  A low crawl over cobbles leads inward to the west.\nLAMP: a brightly shining brass lamp")
     # Check for move with multiple conditions.
-    check50.run(run_command).stdin("IN\nTAKE KEYS\nOUT\nDOWN\nDOWN\nDOWN\nDOWN\nTAKE LAMP\nIN\nWEST\nWEST\nWEST\nTAKE BIRD\nWEST\nDOWN\nSOUTH\nTAKE NUGGET\nOUT\nDROP NUGGET\nUP\nEAST\nEAST\nEAST\nTAKE ROD\nWEST\nWEST\nLOOK\n").stdout(room_14_description).stdin("EAST\nDROP BIRD\nWEST\nLOOK\n").stdout(room_15_description)
+    try:
+        check50.run(run_command).stdin("IN\nTAKE KEYS\nOUT\nDOWN\nDOWN\nDOWN\nDOWN\nTAKE LAMP\nIN\nWEST\nWEST\nWEST\nTAKE BIRD\nWEST\nDOWN\nSOUTH\nTAKE NUGGET\nOUT\nDROP NUGGET\nUP\nEAST\nEAST\nEAST\nTAKE ROD\nWEST\nWEST\nLOOK\n").stdout(room_14_description).stdin("EAST\nDROP BIRD\nWEST\nLOOK\n").stdout(room_15_description)
+    except check50.Failure as error:
+        raise check50.Failure("Did not find correct room description when going WEST from room 13 holding either BIRD & ROD or just ROD.")
 
 @check50.check(conditional_move)
 def forced_move():
-    """Testing for forced movements."""
+    """Checking if forced movements bar the grate."""
     check50.run(run_command).stdin("down\ndown\ndown\ndown").stdout("The grate is locked and you don't have any keys.\nOutside grate")
 
 @check50.check(conditional_move)
 def exotic_move():
-    """Testing for unique movements."""
+    """Performing unique movements such as JUMP or XYZZY."""
     check50.run(run_command).stdin("IN").stdin("XYZZY").stdout("It is now pitch dark.  If you proceed you will likely fall into a pit.")
 
 @check50.check(exotic_move)
