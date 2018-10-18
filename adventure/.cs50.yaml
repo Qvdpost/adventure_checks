@@ -1,6 +1,8 @@
 check50:
-  checks:
-    hello world:
-      - run: python3 hello.py
-        stdout: Hello, world!
-        exit: 0
+  checks: __init__.py
+  files:
+    - !require "adventure.py"
+    - !require "room.py"
+    - !require "item.py"
+    - !require "inventory.py"
+    - !include "*.py"
