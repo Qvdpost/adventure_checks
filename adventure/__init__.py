@@ -144,7 +144,7 @@ def forced_move():
 
 @check50.check(conditional_move)
 def exotic_move():
-    """Performing unique movements such as JUMP or XYZZY."""
+    """Performing special moves such as JUMP or XYZZY."""
     check50.run(run_command).stdin("IN").stdin("XYZZY").stdout("It is now pitch dark.  If you proceed you will likely fall into a pit.")
 
 @check50.check(exotic_move)
